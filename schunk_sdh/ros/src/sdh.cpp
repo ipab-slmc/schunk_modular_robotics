@@ -708,7 +708,7 @@ class SdhNode
 				ROS_ERROR("An exception was caught: %s", e->what());
 				delete e;
 			}
-			ROS_ERROR("Motors disengaged");
+			ROS_INFO("Motors disengaged");
 			res.success.data = true;
 			return true;
 		}
