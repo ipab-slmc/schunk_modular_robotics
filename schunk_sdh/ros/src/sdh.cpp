@@ -116,6 +116,9 @@ class SdhNode
 		ros::ServiceServer srvServer_Stop_;
 		ros::ServiceServer srvServer_Recover_;
 		ros::ServiceServer srvServer_SetOperationMode_;
+		ros::ServiceServer srvServer_EmergencyStop_;
+		ros::ServiceServer srvServer_EngageMotors_;
+		ros::ServiceServer srvServer_DisengageMotors_;
 
 		// actionlib server
 		actionlib::SimpleActionServer<control_msgs::FollowJointTrajectoryAction> as_;
@@ -208,6 +211,9 @@ class SdhNode
 			srvServer_Stop_ = nh_.advertiseService("stop", &SdhNode::srvCallback_Stop, this);
 			srvServer_Recover_ = nh_.advertiseService("recover", &SdhNode::srvCallback_Init, this); //HACK: There is no recover implemented yet, so we execute a init
 			srvServer_SetOperationMode_ = nh_.advertiseService("set_operation_mode", &SdhNode::srvCallback_SetOperationMode, this);
+			srvServer_EmergencyStop_ = nh_.advertiseService("emergency_stop", &SdhNode::srvCallback_EmergencyStop, this);
+			srvServer_EngageMotors_ = nh_.advertiseService("engage", &SdhNode::srvCallback_EngageMotors, this);
+			srvServer_DisengageMotors_ = nh_.advertiseService("disengage", &SdhNode::srvCallback_DisengageMotors, this);
 			
 			subSetVelocitiesRaw_ = nh_.subscribe("set_velocities_raw", 1, &SdhNode::topicCallback_setVelocitiesRaw, this);
 			subSetVelocities_ = nh_.subscribe("set_velocities", 1, &SdhNode::topicCallback_setVelocities, this);
@@ -471,6 +477,8 @@ class SdhNode
 						sdh_->OpenRS232( sdhdevicenum_, 115200, 1, sdhdevicestring_.c_str());
 						ROS_INFO("Initialized RS232 for SDH");
 						isInitialized_ = true;
+
+						sdh_->SetAxisMotorCurrent(sdh_->All, 0.5); // Or .75 as used online
 					}
 					if(sdhdevicetype_.compare("PCAN")==0)
 					{
@@ -626,6 +634,82 @@ class SdhNode
 			}else{
 				ROS_ERROR_STREAM("Operation mode '" << req.data << "'  not supported");
 			}
+			return true;
+		}
+
+		/*!
+		* \brief Executes the service callback for an emergency stop.
+		*
+		* Performs an emergency stop.
+		* \param req Service request
+		* \param res Service response
+		* TODO: Check with current revision whether bugs have been fixed, cf. http://handy.inf.ed.ac.uk/schunk_doc/class_s_d_h_1_1c_s_d_h.html#1af5350393024630009896e5191a5f94
+		*/
+		bool srvCallback_EmergencyStop(cob_srvs::Trigger::Request &req,
+										cob_srvs::Trigger::Response &res )
+		{
+			try
+			{
+				sdh_->EmergencyStop(); // Does only stop current hand motion!
+				sdh_->SetAxisEnable(sdh_->All, 0.0);
+				sdh_->SetAxisMotorCurrent(sdh_->All, 0.0); // TODO: HACK: Required to make EmergencyStop effective - otherwise doesn't work
+			}
+			catch (SDH::cSDHLibraryException* e)
+			{
+				ROS_ERROR("NOT STOPPED - An exception was caught: %s", e->what());
+				delete e;
+			}
+			ROS_ERROR("Emergency stop initiated");
+			res.success.data = true;
+			return true;
+		}
+
+		/*!
+		* \brief Executes the service callback to engage motors.
+		*
+		* Engages motors.
+		* \param req Service request
+		*/
+		bool srvCallback_EngageMotors(cob_srvs::Trigger::Request &req,
+										cob_srvs::Trigger::Response &res )
+		{
+			try
+			{
+				sdh_->SetAxisEnable(sdh_->All, 1.0);
+				sdh_->SetAxisMotorCurrent(sdh_->All, 0.5);
+			}
+			catch (SDH::cSDHLibraryException* e)
+			{
+				ROS_ERROR("An exception was caught: %s", e->what());
+				delete e;
+			}
+			ROS_INFO("Motors engaged");
+			res.success.data = true;
+			return true;
+		}
+
+		/*!
+		* \brief Executes the service callback to disengage motors.
+		*
+		* Disengages motors.
+		* \param req Service request
+		* \param res Service response
+		*/
+		bool srvCallback_DisengageMotors(cob_srvs::Trigger::Request &req,
+										cob_srvs::Trigger::Response &res )
+		{
+			try
+			{
+				sdh_->SetAxisEnable(sdh_->All, 0.0);
+				sdh_->SetAxisMotorCurrent(sdh_->All, 0.0);
+			}
+			catch (SDH::cSDHLibraryException* e)
+			{
+				ROS_ERROR("An exception was caught: %s", e->what());
+				delete e;
+			}
+			ROS_ERROR("Motors disengaged");
+			res.success.data = true;
 			return true;
 		}
 
