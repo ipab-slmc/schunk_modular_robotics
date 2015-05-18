@@ -575,322 +575,322 @@ class SdhNode
 				delete e;
 			}
 
-		ROS_INFO("Stopping sdh succesfull");
-		res.success.data = true;
-		return true;
-	}
-
-	/*!
-	* \brief Executes the service callback for recover.
-	*
-	* Recovers the hardware after an emergency stop.
-	* \param req Service request
-	* \param res Service response
-	*/
-	bool srvCallback_Recover(cob_srvs::Trigger::Request &req,
-							cob_srvs::Trigger::Response &res )
-	{
-		ROS_WARN("Service recover not implemented yet");
-		res.success.data = true;
-		res.error_message.data = "Service recover not implemented yet";
-		return true;
-	}
-	
-	/*!
-	* \brief Executes the service callback for set_operation_mode.
-	*
-	* Changes the operation mode.
-	* \param req Service request
-	* \param res Service response
-	*/
-	bool srvCallback_SetOperationMode(cob_srvs::SetString::Request &req,
-									cob_srvs::SetString::Response &res )
-	{
-		hasNewGoal_ = false;
-		sdh_->Stop();
-		ROS_INFO("Set operation mode to [%s]", req.data.c_str());
-		operationMode_ = req.data;
-		res.success = true;
-		if( operationMode_ == "position"){
-			sdh_->SetController(SDH::cSDH::eCT_POSE);
-		}else if( operationMode_ == "velocity"){
-			try{
-				sdh_->SetController(SDH::cSDH::eCT_VELOCITY);
-				sdh_->SetAxisEnable(sdh_->All, 1.0);
-			}
-			catch (SDH::cSDHLibraryException* e)
-			{
-				ROS_ERROR("An exception was caught: %s", e->what());
-				delete e;
-			}
-		}else{
-			ROS_ERROR_STREAM("Operation mode '" << req.data << "'  not supported");
+			ROS_INFO("Stopping sdh succesfull");
+			res.success.data = true;
+			return true;
 		}
-		return true;
-	}
 
-	/*!
-	* \brief Main routine to update sdh.
-	*
-	* Sends target to hardware and reads out current configuration.
-	*/
-	void updateSdh()
-	{
-		ROS_DEBUG("updateJointState");
-		if (isInitialized_ == true)
+		/*!
+		* \brief Executes the service callback for recover.
+		*
+		* Recovers the hardware after an emergency stop.
+		* \param req Service request
+		* \param res Service response
+		*/
+		bool srvCallback_Recover(cob_srvs::Trigger::Request &req,
+								cob_srvs::Trigger::Response &res )
 		{
-			if (hasNewGoal_ == true)
-			{
-				// stop sdh first when new goal arrived
-				try
-				{
-					sdh_->Stop();
+			ROS_WARN("Service recover not implemented yet");
+			res.success.data = true;
+			res.error_message.data = "Service recover not implemented yet";
+			return true;
+		}
+		
+		/*!
+		* \brief Executes the service callback for set_operation_mode.
+		*
+		* Changes the operation mode.
+		* \param req Service request
+		* \param res Service response
+		*/
+		bool srvCallback_SetOperationMode(cob_srvs::SetString::Request &req,
+										cob_srvs::SetString::Response &res )
+		{
+			hasNewGoal_ = false;
+			sdh_->Stop();
+			ROS_INFO("Set operation mode to [%s]", req.data.c_str());
+			operationMode_ = req.data;
+			res.success = true;
+			if( operationMode_ == "position"){
+				sdh_->SetController(SDH::cSDH::eCT_POSE);
+			}else if( operationMode_ == "velocity"){
+				try{
+					sdh_->SetController(SDH::cSDH::eCT_VELOCITY);
+					sdh_->SetAxisEnable(sdh_->All, 1.0);
 				}
 				catch (SDH::cSDHLibraryException* e)
 				{
 					ROS_ERROR("An exception was caught: %s", e->what());
 					delete e;
 				}
-		
-				if (operationMode_ == "position")
-				{
-					ROS_DEBUG("moving sdh in position mode");
+			}else{
+				ROS_ERROR_STREAM("Operation mode '" << req.data << "'  not supported");
+			}
+			return true;
+		}
 
+		/*!
+		* \brief Main routine to update sdh.
+		*
+		* Sends target to hardware and reads out current configuration.
+		*/
+		void updateSdh()
+		{
+			ROS_DEBUG("updateJointState");
+			if (isInitialized_ == true)
+			{
+				if (hasNewGoal_ == true)
+				{
+					// stop sdh first when new goal arrived
 					try
 					{
-						sdh_->SetAxisTargetAngle( axes_, targetAngles_ );
-						sdh_->MoveHand(false);
+						sdh_->Stop();
 					}
 					catch (SDH::cSDHLibraryException* e)
 					{
 						ROS_ERROR("An exception was caught: %s", e->what());
 						delete e;
 					}
-				}
-				else if (operationMode_ == "velocity")
-				{
-					ROS_DEBUG("moving sdh in velocity mode");
-					try
+			
+					if (operationMode_ == "position")
 					{
-						sdh_->SetAxisTargetVelocity(axes_,velocities_);
-						// ROS_DEBUG_STREAM("velocities: " << velocities_[0] << " "<< velocities_[1] << " "<< velocities_[2] << " "<< velocities_[3] << " "<< velocities_[4] << " "<< velocities_[5] << " "<< velocities_[6]);
+						ROS_DEBUG("moving sdh in position mode");
+
+						try
+						{
+							sdh_->SetAxisTargetAngle( axes_, targetAngles_ );
+							sdh_->MoveHand(false);
+						}
+						catch (SDH::cSDHLibraryException* e)
+						{
+							ROS_ERROR("An exception was caught: %s", e->what());
+							delete e;
+						}
 					}
-					catch (SDH::cSDHLibraryException* e)
+					else if (operationMode_ == "velocity")
 					{
-						ROS_ERROR("An exception was caught: %s", e->what());
-						delete e;
+						ROS_DEBUG("moving sdh in velocity mode");
+						try
+						{
+							sdh_->SetAxisTargetVelocity(axes_,velocities_);
+							// ROS_DEBUG_STREAM("velocities: " << velocities_[0] << " "<< velocities_[1] << " "<< velocities_[2] << " "<< velocities_[3] << " "<< velocities_[4] << " "<< velocities_[5] << " "<< velocities_[6]);
+						}
+						catch (SDH::cSDHLibraryException* e)
+						{
+							ROS_ERROR("An exception was caught: %s", e->what());
+							delete e;
+						}
 					}
+					else if (operationMode_ == "effort")
+					{
+						ROS_DEBUG("moving sdh in effort mode");
+						//sdh_->MoveVel(goal->trajectory.points[0].velocities);
+						ROS_WARN("Moving in effort mode currently disabled");
+					}
+					else
+					{
+						ROS_ERROR("sdh neither in position nor in velocity nor in effort mode. OperationMode = [%s]", operationMode_.c_str());
+					}
+					
+					hasNewGoal_ = false;
 				}
-				else if (operationMode_ == "effort")
+
+		 		// read and publish joint angles and velocities
+				std::vector<double> actualAngles;
+				try
 				{
-					ROS_DEBUG("moving sdh in effort mode");
-					//sdh_->MoveVel(goal->trajectory.points[0].velocities);
-					ROS_WARN("Moving in effort mode currently disabled");
+					actualAngles = sdh_->GetAxisActualAngle( axes_ );
 				}
-				else
+				catch (SDH::cSDHLibraryException* e)
 				{
-					ROS_ERROR("sdh neither in position nor in velocity nor in effort mode. OperationMode = [%s]", operationMode_.c_str());
+					ROS_ERROR("An exception was caught: %s", e->what());
+					delete e;
+				}
+				std::vector<double> actualVelocities;
+				try
+				{
+					actualVelocities = sdh_->GetAxisActualVelocity( axes_ );
+				}
+				catch (SDH::cSDHLibraryException* e)
+				{
+					ROS_ERROR("An exception was caught: %s", e->what());
+					delete e;
 				}
 				
-				hasNewGoal_ = false;
-			}
+				ROS_DEBUG("received %d angles from sdh",(int)actualAngles.size());
+				
+				ros::Time time = ros::Time::now();
+				
+				// create joint_state message
+				sensor_msgs::JointState msg;
+				msg.header.stamp = time;
+				msg.name.resize(DOF_);
+				msg.position.resize(DOF_);
+				msg.velocity.resize(DOF_);
+				msg.effort.resize(DOF_);
+				// set joint names and map them to angles
+				msg.name = joint_names_;
+				//['sdh_knuckle_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint']
+				// pos
+				msg.position[0] = actualAngles[0]*pi_/180.0; // sdh_knuckle_joint
+				msg.position[1] = actualAngles[3]*pi_/180.0; // sdh_thumb_2_joint
+				msg.position[2] = actualAngles[4]*pi_/180.0; // sdh_thumb_3_joint
+				msg.position[3] = actualAngles[5]*pi_/180.0; // sdh_finger_12_joint
+				msg.position[4] = actualAngles[6]*pi_/180.0; // sdh_finger_13_joint
+				msg.position[5] = actualAngles[1]*pi_/180.0; // sdh_finger_22_joint
+				msg.position[6] = actualAngles[2]*pi_/180.0; // sdh_finger_23_joint
+				// vel			
+				msg.velocity[0] = actualVelocities[0]*pi_/180.0; // sdh_knuckle_joint
+				msg.velocity[1] = actualVelocities[3]*pi_/180.0; // sdh_thumb_2_joint
+				msg.velocity[2] = actualVelocities[4]*pi_/180.0; // sdh_thumb_3_joint
+				msg.velocity[3] = actualVelocities[5]*pi_/180.0; // sdh_finger_12_joint
+				msg.velocity[4] = actualVelocities[6]*pi_/180.0; // sdh_finger_13_joint
+				msg.velocity[5] = actualVelocities[1]*pi_/180.0; // sdh_finger_22_joint
+				msg.velocity[6] = actualVelocities[2]*pi_/180.0; // sdh_finger_23_joint
+				// publish message
+				topicPub_JointState_.publish(msg);
+				
+				
+				// because the robot_state_publisher doen't know about the mimic joint, we have to publish the coupled joint separately
+				sensor_msgs::JointState  mimicjointmsg;
+				mimicjointmsg.header.stamp = time;
+				mimicjointmsg.name.resize(1);
+				mimicjointmsg.position.resize(1);
+				mimicjointmsg.velocity.resize(1);
+				mimicjointmsg.name[0] = "sdh_finger_21_joint";
+				mimicjointmsg.position[0] = msg.position[0]; // sdh_knuckle_joint = sdh_finger_21_joint
+				mimicjointmsg.velocity[0] = msg.velocity[0]; // sdh_knuckle_joint = sdh_finger_21_joint
+				topicPub_JointState_.publish(mimicjointmsg);
+				
+				
+				// publish controller state message
+				control_msgs::JointTrajectoryControllerState controllermsg;
+				controllermsg.header.stamp = time;
+				controllermsg.joint_names.resize(DOF_);
+				controllermsg.desired.positions.resize(DOF_);
+				controllermsg.desired.velocities.resize(DOF_);
+				controllermsg.actual.positions.resize(DOF_);
+				controllermsg.actual.velocities.resize(DOF_);
+				controllermsg.error.positions.resize(DOF_);
+				controllermsg.error.velocities.resize(DOF_);
+				// set joint names and map them to angles
+				controllermsg.joint_names = joint_names_;
+				//['sdh_knuckle_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint']
+				// desired pos
+				if (targetAngles_.size() != 0)
+				{
+					controllermsg.desired.positions[0] = targetAngles_[0]*pi_/180.0; // sdh_knuckle_joint
+					controllermsg.desired.positions[1] = targetAngles_[3]*pi_/180.0; // sdh_thumb_2_joint
+					controllermsg.desired.positions[2] = targetAngles_[4]*pi_/180.0; // sdh_thumb_3_joint
+					controllermsg.desired.positions[3] = targetAngles_[5]*pi_/180.0; // sdh_finger_12_joint
+					controllermsg.desired.positions[4] = targetAngles_[6]*pi_/180.0; // sdh_finger_13_joint
+					controllermsg.desired.positions[5] = targetAngles_[1]*pi_/180.0; // sdh_finger_22_joint
+					controllermsg.desired.positions[6] = targetAngles_[2]*pi_/180.0; // sdh_finger_23_joint
+				}
+				// desired vel
+					// they are all zero
+				// actual pos			
+				controllermsg.actual.positions = msg.position;
+				// actual vel
+				controllermsg.actual.velocities = msg.velocity;
+				// error, calculated out of desired and actual values
+				for (int i = 0; i<DOF_; i++ )
+				{
+					controllermsg.error.positions[i] = controllermsg.desired.positions[i] - controllermsg.actual.positions[i];
+					controllermsg.error.velocities[i] = controllermsg.desired.velocities[i] - controllermsg.actual.velocities[i];
+				}
+				// publish controller message
+				topicPub_ControllerState_.publish(controllermsg);
 
-	 		// read and publish joint angles and velocities
-			std::vector<double> actualAngles;
-			try
-			{
-				actualAngles = sdh_->GetAxisActualAngle( axes_ );
+				// read sdh status
+				state_ = sdh_->GetAxisActualState(axes_);
 			}
-			catch (SDH::cSDHLibraryException* e)
+			else
 			{
-				ROS_ERROR("An exception was caught: %s", e->what());
-				delete e;
+				ROS_DEBUG("sdh not initialized");
 			}
-			std::vector<double> actualVelocities;
-			try
-			{
-				actualVelocities = sdh_->GetAxisActualVelocity( axes_ );
-			}
-			catch (SDH::cSDHLibraryException* e)
-			{
-				ROS_ERROR("An exception was caught: %s", e->what());
-				delete e;
-			}
-			
-			ROS_DEBUG("received %d angles from sdh",(int)actualAngles.size());
-			
-			ros::Time time = ros::Time::now();
-			
-			// create joint_state message
-			sensor_msgs::JointState msg;
-			msg.header.stamp = time;
-			msg.name.resize(DOF_);
-			msg.position.resize(DOF_);
-			msg.velocity.resize(DOF_);
-			msg.effort.resize(DOF_);
-			// set joint names and map them to angles
-			msg.name = joint_names_;
-			//['sdh_knuckle_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint']
-			// pos
-			msg.position[0] = actualAngles[0]*pi_/180.0; // sdh_knuckle_joint
-			msg.position[1] = actualAngles[3]*pi_/180.0; // sdh_thumb_2_joint
-			msg.position[2] = actualAngles[4]*pi_/180.0; // sdh_thumb_3_joint
-			msg.position[3] = actualAngles[5]*pi_/180.0; // sdh_finger_12_joint
-			msg.position[4] = actualAngles[6]*pi_/180.0; // sdh_finger_13_joint
-			msg.position[5] = actualAngles[1]*pi_/180.0; // sdh_finger_22_joint
-			msg.position[6] = actualAngles[2]*pi_/180.0; // sdh_finger_23_joint
-			// vel			
-			msg.velocity[0] = actualVelocities[0]*pi_/180.0; // sdh_knuckle_joint
-			msg.velocity[1] = actualVelocities[3]*pi_/180.0; // sdh_thumb_2_joint
-			msg.velocity[2] = actualVelocities[4]*pi_/180.0; // sdh_thumb_3_joint
-			msg.velocity[3] = actualVelocities[5]*pi_/180.0; // sdh_finger_12_joint
-			msg.velocity[4] = actualVelocities[6]*pi_/180.0; // sdh_finger_13_joint
-			msg.velocity[5] = actualVelocities[1]*pi_/180.0; // sdh_finger_22_joint
-			msg.velocity[6] = actualVelocities[2]*pi_/180.0; // sdh_finger_23_joint
-			// publish message
-			topicPub_JointState_.publish(msg);
-			
-			
-			// because the robot_state_publisher doen't know about the mimic joint, we have to publish the coupled joint separately
-			sensor_msgs::JointState  mimicjointmsg;
-			mimicjointmsg.header.stamp = time;
-			mimicjointmsg.name.resize(1);
-			mimicjointmsg.position.resize(1);
-			mimicjointmsg.velocity.resize(1);
-			mimicjointmsg.name[0] = "sdh_finger_21_joint";
-			mimicjointmsg.position[0] = msg.position[0]; // sdh_knuckle_joint = sdh_finger_21_joint
-			mimicjointmsg.velocity[0] = msg.velocity[0]; // sdh_knuckle_joint = sdh_finger_21_joint
-			topicPub_JointState_.publish(mimicjointmsg);
-			
-			
-			// publish controller state message
-			control_msgs::JointTrajectoryControllerState controllermsg;
-			controllermsg.header.stamp = time;
-			controllermsg.joint_names.resize(DOF_);
-			controllermsg.desired.positions.resize(DOF_);
-			controllermsg.desired.velocities.resize(DOF_);
-			controllermsg.actual.positions.resize(DOF_);
-			controllermsg.actual.velocities.resize(DOF_);
-			controllermsg.error.positions.resize(DOF_);
-			controllermsg.error.velocities.resize(DOF_);
-			// set joint names and map them to angles
-			controllermsg.joint_names = joint_names_;
-			//['sdh_knuckle_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint']
-			// desired pos
-			if (targetAngles_.size() != 0)
-			{
-				controllermsg.desired.positions[0] = targetAngles_[0]*pi_/180.0; // sdh_knuckle_joint
-				controllermsg.desired.positions[1] = targetAngles_[3]*pi_/180.0; // sdh_thumb_2_joint
-				controllermsg.desired.positions[2] = targetAngles_[4]*pi_/180.0; // sdh_thumb_3_joint
-				controllermsg.desired.positions[3] = targetAngles_[5]*pi_/180.0; // sdh_finger_12_joint
-				controllermsg.desired.positions[4] = targetAngles_[6]*pi_/180.0; // sdh_finger_13_joint
-				controllermsg.desired.positions[5] = targetAngles_[1]*pi_/180.0; // sdh_finger_22_joint
-				controllermsg.desired.positions[6] = targetAngles_[2]*pi_/180.0; // sdh_finger_23_joint
-			}
-			// desired vel
-				// they are all zero
-			// actual pos			
-			controllermsg.actual.positions = msg.position;
-			// actual vel
-			controllermsg.actual.velocities = msg.velocity;
-			// error, calculated out of desired and actual values
-			for (int i = 0; i<DOF_; i++ )
-			{
-				controllermsg.error.positions[i] = controllermsg.desired.positions[i] - controllermsg.actual.positions[i];
-				controllermsg.error.velocities[i] = controllermsg.desired.velocities[i] - controllermsg.actual.velocities[i];
-			}
-			// publish controller message
-			topicPub_ControllerState_.publish(controllermsg);
+			// publishing diagnotic messages
+		    diagnostic_msgs::DiagnosticArray diagnostics;
+		    diagnostics.status.resize(1);
+		    // set data to diagnostics
+		    if(isError_)
+		    {
+		      diagnostics.status[0].level = 2;
+		      diagnostics.status[0].name = "schunk_powercube_chain";
+		      diagnostics.status[0].message = "one or more drives are in Error mode";
+		    }
+		    else
+		    {
+		      if (isInitialized_)
+		      {
+		        diagnostics.status[0].level = 0;
+		        diagnostics.status[0].name = nh_.getNamespace(); //"schunk_powercube_chain";
+		        if(isDSAInitialized_)
+		        	diagnostics.status[0].message = "sdh with tactile sensing initialized and running";
+		        else
+		        	diagnostics.status[0].message = "sdh initialized and running, tactile sensors not connected";	
+		      }
+		      else
+		      {
+		        diagnostics.status[0].level = 1;
+		        diagnostics.status[0].name = nh_.getNamespace(); //"schunk_powercube_chain";
+		        diagnostics.status[0].message = "sdh not initialized";
+		      }
+		    }
+		    // publish diagnostic message
+		    topicPub_Diagnostics_.publish(diagnostics);
 
-			// read sdh status
-			state_ = sdh_->GetAxisActualState(axes_);
 		}
-		else
+
+		/*!
+		* \brief Main routine to update dsa.
+		*
+		* Reads out current values.
+		*/
+		void updateDsa()
 		{
-			ROS_DEBUG("sdh not initialized");
-		}
-		// publishing diagnotic messages
-	    diagnostic_msgs::DiagnosticArray diagnostics;
-	    diagnostics.status.resize(1);
-	    // set data to diagnostics
-	    if(isError_)
-	    {
-	      diagnostics.status[0].level = 2;
-	      diagnostics.status[0].name = "schunk_powercube_chain";
-	      diagnostics.status[0].message = "one or more drives are in Error mode";
-	    }
-	    else
-	    {
-	      if (isInitialized_)
-	      {
-	        diagnostics.status[0].level = 0;
-	        diagnostics.status[0].name = nh_.getNamespace(); //"schunk_powercube_chain";
-	        if(isDSAInitialized_)
-	        	diagnostics.status[0].message = "sdh with tactile sensing initialized and running";
-	        else
-	        	diagnostics.status[0].message = "sdh initialized and running, tactile sensors not connected";	
-	      }
-	      else
-	      {
-	        diagnostics.status[0].level = 1;
-	        diagnostics.status[0].name = nh_.getNamespace(); //"schunk_powercube_chain";
-	        diagnostics.status[0].message = "sdh not initialized";
-	      }
-	    }
-	    // publish diagnostic message
-	    topicPub_Diagnostics_.publish(diagnostics);
+	                static const int dsa_reorder[6] = { 2 ,3, 4, 5, 0 , 1 }; // t1,t2,f11,f12,f21,f22
+			ROS_DEBUG("updateTactileData");
 
-	}
-
-	/*!
-	* \brief Main routine to update dsa.
-	*
-	* Reads out current values.
-	*/
-	void updateDsa()
-	{
-                static const int dsa_reorder[6] = { 2 ,3, 4, 5, 0 , 1 }; // t1,t2,f11,f12,f21,f22
-		ROS_DEBUG("updateTactileData");
-
-		if(isDSAInitialized_)
-		{
-			// read tactile data
-			for(int i=0; i<7; i++)
+			if(isDSAInitialized_)
 			{
-				try
+				// read tactile data
+				for(int i=0; i<7; i++)
 				{
-					//dsa_->SetFramerate( 0, true, true );
-					dsa_->UpdateFrame();
+					try
+					{
+						//dsa_->SetFramerate( 0, true, true );
+						dsa_->UpdateFrame();
+					}
+					catch (SDH::cSDHLibraryException* e)
+					{
+						ROS_ERROR("An exception was caught: %s", e->what());
+						delete e;
+					}
 				}
-				catch (SDH::cSDHLibraryException* e)
-				{
-					ROS_ERROR("An exception was caught: %s", e->what());
-					delete e;
-				}
-			}
 
-			schunk_sdh::TactileSensor msg;
-			msg.header.stamp = ros::Time::now();
-			int m, x, y;
-			msg.tactile_matrix.resize(dsa_->GetSensorInfo().nb_matrices);
-			for ( int i = 0; i < dsa_->GetSensorInfo().nb_matrices; i++ )
-			{
-				m = dsa_reorder[i];                                  
-				schunk_sdh::TactileMatrix &tm = msg.tactile_matrix[i];
-				tm.matrix_id = i;
-				tm.cells_x = dsa_->GetMatrixInfo( m ).cells_x;
-				tm.cells_y = dsa_->GetMatrixInfo( m ).cells_y;
-				tm.tactile_array.resize(tm.cells_x * tm.cells_y);
-				for ( y = 0; y < tm.cells_y; y++ )
+				schunk_sdh::TactileSensor msg;
+				msg.header.stamp = ros::Time::now();
+				int m, x, y;
+				msg.tactile_matrix.resize(dsa_->GetSensorInfo().nb_matrices);
+				for ( int i = 0; i < dsa_->GetSensorInfo().nb_matrices; i++ )
 				{
-					for ( x = 0; x < tm.cells_x; x++ )
-						tm.tactile_array[tm.cells_x*y + x] = dsa_->GetTexel( m, x, y );
+					m = dsa_reorder[i];                                  
+					schunk_sdh::TactileMatrix &tm = msg.tactile_matrix[i];
+					tm.matrix_id = i;
+					tm.cells_x = dsa_->GetMatrixInfo( m ).cells_x;
+					tm.cells_y = dsa_->GetMatrixInfo( m ).cells_y;
+					tm.tactile_array.resize(tm.cells_x * tm.cells_y);
+					for ( y = 0; y < tm.cells_y; y++ )
+					{
+						for ( x = 0; x < tm.cells_x; x++ )
+							tm.tactile_array[tm.cells_x*y + x] = dsa_->GetTexel( m, x, y );
+					}
 				}
+				//publish matrix
+				topicPub_TactileSensor_.publish(msg);
 			}
-			//publish matrix
-			topicPub_TactileSensor_.publish(msg);
-		}
-	}	 
+		}	 
 }; //SdhNode
 
 /*!
