@@ -209,7 +209,7 @@ class SdhNode
 			// implementation of service servers
 			srvServer_Init_ = nh_.advertiseService("init", &SdhNode::srvCallback_Init, this);
 			srvServer_Stop_ = nh_.advertiseService("stop", &SdhNode::srvCallback_Stop, this);
-			srvServer_Recover_ = nh_.advertiseService("recover", &SdhNode::srvCallback_Init, this); //HACK: There is no recover implemented yet, so we execute a init
+			srvServer_Recover_ = nh_.advertiseService("recover", &SdhNode::srvCallback_EngageMotors, this); //HACK: Init never worked, now re-engaging motors
 			srvServer_SetOperationMode_ = nh_.advertiseService("set_operation_mode", &SdhNode::srvCallback_SetOperationMode, this);
 			srvServer_EmergencyStop_ = nh_.advertiseService("emergency_stop", &SdhNode::srvCallback_EmergencyStop, this);
 			srvServer_EngageMotors_ = nh_.advertiseService("engage", &SdhNode::srvCallback_EngageMotors, this);
