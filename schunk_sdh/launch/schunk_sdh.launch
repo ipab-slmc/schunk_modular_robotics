@@ -3,5 +3,5 @@
 	<node ns="gripper" pkg="schunk_sdh" type="schunk_sdh" name="sdh_controller" cwd="node" respawn="true" output="screen" >
 		<rosparam command="load" file="$(find schunk_sdh)/launch/schunk_sdh.yaml"/>
 	</node>
-	<node ns="gripper" pkg="sdh_hand_controller" type="sdh_hand_controller.py" name="sdh_hand_controller" output="screen"></node>
+	<!--<node ns="gripper" pkg="sdh_hand_controller" type="sdh_hand_controller.py" name="sdh_hand_controller" output="screen"></node>-->
 </launch>
