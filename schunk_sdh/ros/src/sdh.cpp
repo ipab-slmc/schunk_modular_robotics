@@ -116,6 +116,8 @@ private:
     ros::ServiceServer srvServer_EmergencyStop_;
     ros::ServiceServer srvServer_EngageMotors_;
     ros::ServiceServer srvServer_DisengageMotors_;
+    ros::ServiceServer srvServer_TactileClose_;
+    ros::ServiceServer srvServer_TactileOpen_;
 
     // actionlib server
     actionlib::SimpleActionServer<control_msgs::FollowJointTrajectoryAction> as_;
@@ -150,6 +152,7 @@ private:
     std::vector<double> targetAngles_; // in degrees
     std::vector<double> velocities_; // in rad/s
     bool hasNewGoal_;
+    bool tactileOpening_;
     std::string operationMode_;
 
 public:
@@ -210,7 +213,10 @@ public:
         srvServer_EngageMotors_ = nh_.advertiseService("engage", &SdhNode::srvCallback_EngageMotors, this);
         srvServer_DisengageMotors_ = nh_.advertiseService("disengage", &SdhNode::srvCallback_DisengageMotors, this);
 
-        
+        // tactile grasping services
+        srvServer_TactileClose_ = nh_.advertiseService("tactile_close", &SdhNode::srvCallback_TactileClose, this);
+        srvServer_TactileOpen_ = nh_.advertiseService("tactile_open", &SdhNode::srvCallback_TactileOpen, this);
+
         subSetVelocitiesRaw_ = nh_.subscribe("joint_group_velocity_controller/command", 1, &SdhNode::topicCallback_setVelocitiesRaw, this);
 
         // getting hardware parameters from parameter server
@@ -339,6 +345,7 @@ public:
         targetAngles_[6] = goal->trajectory.points[0].positions[dict["sdh_finger_13_joint"]] * 180.0 / pi_; // sdh_finger13_joint
         ROS_INFO("received position goal: [['sdh_knuckle_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint']] = [%f,%f,%f,%f,%f,%f,%f]", goal->trajectory.points[0].positions[dict["sdh_knuckle_joint"]], goal->trajectory.points[0].positions[dict["sdh_thumb_2_joint"]], goal->trajectory.points[0].positions[dict["sdh_thumb_3_joint"]], goal->trajectory.points[0].positions[dict["sdh_finger_12_joint"]], goal->trajectory.points[0].positions[dict["sdh_finger_13_joint"]], goal->trajectory.points[0].positions[dict["sdh_finger_22_joint"]], goal->trajectory.points[0].positions[dict["sdh_finger_23_joint"]]);
 
+        tactileOpening_ = false;
         hasNewGoal_ = true;
 
         usleep(500000); // needed sleep until sdh starts to change status from idle to moving
@@ -669,6 +676,76 @@ public:
     }
 
     /*!
+    * \brief Executes the service callback to close the hand with tactile sensing (simple tactile grasp).
+    *
+    * Closes hand with tactile sensing.
+    * \param req Service request
+    * \param res Service response
+    */
+    bool srvCallback_TactileClose(std_srvs::Trigger::Request &req,
+                                  std_srvs::Trigger::Response &res )
+    {
+        try
+        {
+            targetAngles_.resize(DOF_);
+            targetAngles_[0] = 0; // sdh_knuckle_joint
+            targetAngles_[1] = 0; // sdh_finger22_joint
+            targetAngles_[2] = 0; // sdh_finger23_joint
+            targetAngles_[3] = 0; // sdh_thumb2_joint
+            targetAngles_[4] = 0; // sdh_thumb3_joint
+            targetAngles_[5] = 0; // sdh_finger12_joint
+            targetAngles_[6] = 0; // sdh_finger13_joint
+            tactileOpening_ = false;
+            hasNewGoal_ = true;
+            usleep(500000);
+        }
+        catch (SDH::cSDHLibraryException* e)
+        {
+            ROS_ERROR("An exception was caught: %s", e->what());
+            delete e;
+            res.success = false;
+        }
+        ROS_INFO("Tactile Closing");
+        res.success = true;
+        return true;
+    }
+
+    /*!
+    * \brief Executes the service callback to open the hand with tactile sensing (simple tactile grasp).
+    *
+    * Opens hand with tactile sensing.
+    * \param req Service request
+    * \param res Service response
+    */
+    bool srvCallback_TactileOpen(std_srvs::Trigger::Request &req,
+                                 std_srvs::Trigger::Response &res )
+    {
+        try
+        {
+            targetAngles_.resize(DOF_);
+            targetAngles_[0] = 0 * 180.0 / pi_; // sdh_knuckle_joint
+            targetAngles_[1] = -1.5707 * 180.0 / pi_; // sdh_finger22_joint
+            targetAngles_[2] = .785 * 180.0 / pi_; // sdh_finger23_joint
+            targetAngles_[3] = -1.5707 * 180.0 / pi_; // sdh_thumb2_joint
+            targetAngles_[4] = .785 * 180.0 / pi_; // sdh_thumb3_joint
+            targetAngles_[5] = -1.5707 * 180.0 / pi_; // sdh_finger12_joint
+            targetAngles_[6] = .785 * 180.0 / pi_; // sdh_finger13_joint
+            tactileOpening_ = true;
+            hasNewGoal_ = true;
+            usleep(500000);
+        }
+        catch (SDH::cSDHLibraryException* e)
+        {
+            ROS_ERROR("An exception was caught: %s", e->what());
+            delete e;
+            res.success = false;
+        }
+        ROS_INFO("Tactile Opening");
+        res.success = true;
+        return true;
+    }
+
+    /*!
     * \brief Main routine to update sdh.
     *
     * Sends target to hardware and reads out current configuration.
@@ -922,8 +999,15 @@ public:
                 tm.tactile_array.resize(tm.cells_x * tm.cells_y);
                 for ( y = 0; y < tm.cells_y; y++ )
                 {
-                    for ( x = 0; x < tm.cells_x; x++ )
+                    for ( x = 0; x < tm.cells_x; x++ ) {
                         tm.tactile_array[tm.cells_x * y + x] = dsa_->GetTexel( m, x, y );
+
+                        // Hack: checkForceSensorsAndStopIfTooHigh
+                        if (dsa_->GetTexel( m, x, y ) > 200 && !tactileOpening_) {
+                            sdh_->Stop();
+                            //std::cout << "Activated: " << m << ", " << x << ", " << y << ": " << dsa_->GetTexel( m, x, y ) << std::endl;
+                        }
+                    }
                 }
             }
             //publish matrix
