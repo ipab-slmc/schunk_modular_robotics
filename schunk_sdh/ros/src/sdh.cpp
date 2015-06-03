@@ -81,9 +81,6 @@
 #include <std_srvs/Trigger.h>
 #include <cob_srvs/SetString.h>
 
-// Generalised ROS service includes
-#include <std_srvs/Empty.h>
-
 // ROS diagnostic msgs
 #include <diagnostic_msgs/DiagnosticArray.h>
 
@@ -599,10 +596,9 @@ class SdhNode
 		* \param req Service request
 		* \param res Service response
 		* TODO: Check with current revision whether bugs have been fixed, cf. http://handy.inf.ed.ac.uk/schunk_doc/class_s_d_h_1_1c_s_d_h.html#1af5350393024630009896e5191a5f94
-		* TODO: replace Empty with Trigger type
 		*/
-		bool srvCallback_EmergencyStop(std_srvs::Empty::Request &req,
-										std_srvs::Empty::Response &res )
+		bool srvCallback_EmergencyStop(std_srvs::Trigger::Request &req,
+										std_srvs::Trigger::Response &res )
 		{
 			try
 			{
@@ -614,10 +610,11 @@ class SdhNode
 			{
 				ROS_ERROR("NOT STOPPED - An exception was caught: %s", e->what());
 				delete e;
+				res.success = false;
 				return false;
 			}
 			ROS_ERROR("Emergency stop initiated");
-			//res.success.data = true;
+			res.success = true;
 			return true;
 		}
 
