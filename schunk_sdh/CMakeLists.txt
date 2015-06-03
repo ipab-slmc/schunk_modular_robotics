@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(schunk_sdh)
 
-find_package(catkin REQUIRED COMPONENTS roscpp urdf actionlib libntcan libpcan message_generation std_msgs sensor_msgs trajectory_msgs cob_srvs control_msgs diagnostic_msgs brics_actuator std_srvs)
+find_package(catkin REQUIRED COMPONENTS roscpp urdf actionlib libntcan libpcan message_generation std_msgs std_srvs sensor_msgs trajectory_msgs cob_srvs control_msgs diagnostic_msgs)
+
 
 #######################################
 ## Declare ROS messages and services ##
@@ -24,7 +25,7 @@ generate_messages(
 ## catkin specific configuration ##
 ###################################
 catkin_package(
-    CATKIN_DEPENDS roscpp message_runtime urdf std_msgs sensor_msgs trajectory_msgs actionlib cob_srvs control_msgs libntcan libpcan diagnostic_msgs brics_actuator std_srvs
+    CATKIN_DEPENDS roscpp message_runtime urdf std_msgs sensor_msgs trajectory_msgs actionlib cob_srvs std_srvs control_msgs libntcan libpcan diagnostic_msgs
 )
 
 ###########
