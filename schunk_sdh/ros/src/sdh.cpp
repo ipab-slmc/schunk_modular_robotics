@@ -104,7 +104,7 @@ class SdhNode
 		ros::Publisher topicPub_ControllerState_;
 		ros::Publisher topicPub_TactileSensor_;
 		ros::Publisher topicPub_Diagnostics_;
-		
+
 		// topic subscribers
 		ros::Subscriber subSetVelocitiesRaw_;
 
@@ -138,15 +138,15 @@ class SdhNode
 		int dsadevicenum_;
 		int baudrate_, id_read_, id_write_;
 		double timeout_;
-		
+
 		bool isInitialized_;
 		bool isDSAInitialized_;
 		bool isError_;
 		int DOF_;
 		double pi_;
-		
-		trajectory_msgs::JointTrajectory traj_;
 
+		trajectory_msgs::JointTrajectory traj_;
+		
 		std::vector<std::string> joint_names_;
 		std::vector<int> axes_;
 		std::vector<double> targetAngles_; // in degrees
@@ -261,7 +261,7 @@ class SdhNode
 				axes_[i] = i;
 			}
 			ROS_INFO("DOF = %d",DOF_);
-			
+
 			state_.resize(axes_.size());
 
 			nh_.param("OperationMode", operationMode_, std::string("position"));
