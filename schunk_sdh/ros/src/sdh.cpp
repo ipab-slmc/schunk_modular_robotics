@@ -261,7 +261,7 @@ class SdhNode
 				axes_[i] = i;
 			}
 			ROS_INFO("DOF = %d",DOF_);
-
+			
 			state_.resize(axes_.size());
 
 			nh_.param("OperationMode", operationMode_, std::string("position"));
@@ -275,7 +275,7 @@ class SdhNode
 		bool switchOperationMode(const std::string &mode){
 			hasNewGoal_ = false;
 			sdh_->Stop();
-
+			
 			try{
 				if (mode == "position")
 				{
