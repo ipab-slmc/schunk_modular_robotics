@@ -1088,14 +1088,14 @@ int main(int argc, char** argv)
 
 	//sleep(1);
 	ros::Rate loop_rate(frequency); // Hz
-	while (sdh_node.nh_.ok())
+	while(sdh_node.nh_.ok())
 	{
 		// publish JointState
 		sdh_node.updateSdh();
-
+		
 		// publish TactileData
 		sdh_node.updateDsa();
-
+		
 		// sleep and waiting for messages, callbacks
 		ros::spinOnce();
 		loop_rate.sleep();
