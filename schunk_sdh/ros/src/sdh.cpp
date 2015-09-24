@@ -161,9 +161,9 @@ class SdhNode
 		*
 		* \param name Name for the actionlib server
 		*/
-		SdhNode(std::string name) :
-				as_(nh_, name, boost::bind(&SdhNode::executeCB, this, _1), true), 
-				action_name_(name)
+		SdhNode(std::string name):
+			as_(nh_, name, boost::bind(&SdhNode::executeCB, this, _1), true), 
+			action_name_(name)
 		{
 			pi_ = 3.1415926;
 
@@ -214,26 +214,21 @@ class SdhNode
 			srvServer_DisengageMotors_ = nh_.advertiseService("disengage", &SdhNode::srvCallback_DisengageMotors, this);
 
 			// tactile grasping services
-			srvServer_TactileClose_ = nh_.advertiseService("tactile_close",
-					&SdhNode::srvCallback_TactileClose, this);
-			srvServer_TactileOpen_ = nh_.advertiseService("tactile_open",
-					&SdhNode::srvCallback_TactileOpen, this);
+			srvServer_TactileClose_ = nh_.advertiseService("tactile_close", &SdhNode::srvCallback_TactileClose, this);
+			srvServer_TactileOpen_ = nh_.advertiseService("tactile_open", &SdhNode::srvCallback_TactileOpen, this);
 
-			subSetVelocitiesRaw_ = nh_.subscribe(
-					"joint_group_velocity_controller/command", 1,
-					&SdhNode::topicCallback_setVelocitiesRaw, this);
+			subSetVelocitiesRaw_ = nh_.subscribe("joint_group_velocity_controller/command", 1, &SdhNode::topicCallback_setVelocitiesRaw, this);
 
 			// getting hardware parameters from parameter server
 			nh_.param("sdhdevicetype", sdhdevicetype_, std::string("PCAN"));
-			nh_.param("sdhdevicestring", sdhdevicestring_,
-					std::string("/dev/pcan0"));
+			nh_.param("sdhdevicestring", sdhdevicestring_, std::string("/dev/pcan0"));
 			nh_.param("sdhdevicenum", sdhdevicenum_, 0);
 
 			nh_.param("dsadevicestring", dsadevicestring_, std::string(""));
 			nh_.param("dsadevicenum", dsadevicenum_, 0);
 
 			nh_.param("baudrate", baudrate_, 1000000);
-			nh_.param("timeout", timeout_, (double) 0.04);
+			nh_.param("timeout", timeout_, (double)0.04);
 			nh_.param("id_read", id_read_, 43);
 			nh_.param("id_write", id_write_, 42);
 
@@ -246,14 +241,13 @@ class SdhNode
 			}
 			else
 			{
-				ROS_ERROR(
-						"Parameter joint_names not set, shutting down node...");
+				ROS_ERROR("Parameter joint_names not set, shutting down node...");
 				nh_.shutdown();
 				return false;
 			}
 			DOF_ = joint_names_param.size();
 			joint_names_.resize(DOF_);
-			for (int i = 0; i < DOF_; i++)
+			for (int i=0; i<DOF_; i++)
 			{
 				joint_names_[i] = (std::string) joint_names_param[i];
 			}
@@ -266,7 +260,7 @@ class SdhNode
 			{
 				axes_[i] = i;
 			}
-			ROS_INFO("DOF = %d", DOF_);
+			ROS_INFO("DOF = %d",DOF_);
 
 			state_.resize(axes_.size());
 
@@ -274,12 +268,11 @@ class SdhNode
 			return true;
 		}
 		/*!
-		 * \brief Switches operation mode if possible
-		 *
-		 * \param mode new mode
-		 */
-		bool switchOperationMode(const std::string &mode)
-		{
+		* \brief Switches operation mode if possible
+		*
+		* \param mode new mode
+		*/
+		bool switchOperationMode(const std::string &mode){
 			hasNewGoal_ = false;
 			sdh_->Stop();
 
