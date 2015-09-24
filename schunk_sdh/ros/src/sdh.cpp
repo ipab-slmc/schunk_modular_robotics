@@ -256,12 +256,12 @@ class SdhNode
 			// define axes to send to sdh
 			axes_.resize(DOF_);
 			velocities_.resize(DOF_);
-			for (int i=0; i<DOF_; i++)
+			for(int i=0; i<DOF_; i++)
 			{
 				axes_[i] = i;
 			}
 			ROS_INFO("DOF = %d",DOF_);
-
+			
 			state_.resize(axes_.size());
 
 			nh_.param("OperationMode", operationMode_, std::string("position"));
@@ -1053,8 +1053,7 @@ class SdhNode
 				topicPub_TactileSensor_.publish(msg);
 			}
 		}
-};
-//SdhNode
+}; //SdhNode
 
 /*!
 * \brief Main loop of ROS node.
