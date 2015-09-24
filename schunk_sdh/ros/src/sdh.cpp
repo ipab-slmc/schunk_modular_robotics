@@ -185,9 +185,10 @@ class SdhNode
 			delete sdh_;
 		}
 
+
 		/*!
-		 * \brief Initializes node to get parameters, subscribe and publish to topics.
-		 */
+		* \brief Initializes node to get parameters, subscribe and publish to topics.
+		*/
 		bool init()
 		{
 			// initialize member variables
@@ -196,33 +197,21 @@ class SdhNode
 			hasNewGoal_ = false;
 
 			// implementation of topics to publish
-			topicPub_JointState_ = nh_.advertise<sensor_msgs::JointState>(
-					ros::this_node::getName() + "/joint_states", 1);
-			topicPub_ControllerState_ = nh_.advertise<
-					control_msgs::JointTrajectoryControllerState>(
-					"joint_trajectory_controller/state", 1);
-			topicPub_TactileSensor_ = nh_.advertise<schunk_sdh::TactileSensor>(
-					"tactile_data", 1);
+			topicPub_JointState_ = nh_.advertise<sensor_msgs::JointState>(ros::this_node::getName() + "/joint_states", 1);
+			topicPub_ControllerState_ = nh_.advertise<control_msgs::JointTrajectoryControllerState>("joint_trajectory_controller/state", 1);
+			topicPub_TactileSensor_ = nh_.advertise<schunk_sdh::TactileSensor>("tactile_data", 1);
 
 			// pointer to sdh
 			sdh_ = new SDH::cSDH(false, false, 0); //(_use_radians=false, bool _use_fahrenheit=false, int _debug_level=0)
 
 			// implementation of service servers
-			srvServer_Init_ = nh_.advertiseService("init",
-					&SdhNode::srvCallback_Init, this);
-			srvServer_Stop_ = nh_.advertiseService("stop",
-					&SdhNode::srvCallback_Stop, this);
-			srvServer_Recover_ = nh_.advertiseService("recover",
-					&SdhNode::srvCallback_EngageMotors, this);
-			srvServer_SetOperationMode_ = nh_.advertiseService(
-					"set_operation_mode",
-					&SdhNode::srvCallback_SetOperationMode, this);
-			srvServer_EmergencyStop_ = nh_.advertiseService("emergency_stop",
-					&SdhNode::srvCallback_EmergencyStop, this);
-			srvServer_EngageMotors_ = nh_.advertiseService("engage",
-					&SdhNode::srvCallback_EngageMotors, this);
-			srvServer_DisengageMotors_ = nh_.advertiseService("disengage",
-					&SdhNode::srvCallback_DisengageMotors, this);
+			srvServer_Init_ = nh_.advertiseService("init", &SdhNode::srvCallback_Init, this);
+			srvServer_Stop_ = nh_.advertiseService("stop", &SdhNode::srvCallback_Stop, this);
+			srvServer_Recover_ = nh_.advertiseService("recover", &SdhNode::srvCallback_EngageMotors, this);
+			srvServer_SetOperationMode_ = nh_.advertiseService("set_operation_mode", &SdhNode::srvCallback_SetOperationMode, this);
+			srvServer_EmergencyStop_ = nh_.advertiseService("emergency_stop", &SdhNode::srvCallback_EmergencyStop, this);
+			srvServer_EngageMotors_ = nh_.advertiseService("engage", &SdhNode::srvCallback_EngageMotors, this);
+			srvServer_DisengageMotors_ = nh_.advertiseService("disengage", &SdhNode::srvCallback_DisengageMotors, this);
 
 			// tactile grasping services
 			srvServer_TactileClose_ = nh_.advertiseService("tactile_close",
