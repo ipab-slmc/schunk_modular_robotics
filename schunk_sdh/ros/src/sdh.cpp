@@ -104,7 +104,7 @@ class SdhNode
 		ros::Publisher topicPub_ControllerState_;
 		ros::Publisher topicPub_TactileSensor_;
 		ros::Publisher topicPub_Diagnostics_;
-
+		
 		// topic subscribers
 		ros::Subscriber subSetVelocitiesRaw_;
 
@@ -138,13 +138,13 @@ class SdhNode
 		int dsadevicenum_;
 		int baudrate_, id_read_, id_write_;
 		double timeout_;
-
+		
 		bool isInitialized_;
 		bool isDSAInitialized_;
 		bool isError_;
 		int DOF_;
 		double pi_;
-
+		
 		trajectory_msgs::JointTrajectory traj_;
 
 		std::vector<std::string> joint_names_;
