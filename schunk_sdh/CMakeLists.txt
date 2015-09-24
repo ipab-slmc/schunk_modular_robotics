@@ -3,7 +3,6 @@ project(schunk_sdh)
 
 find_package(catkin REQUIRED COMPONENTS roscpp urdf actionlib libntcan libpcan message_generation std_msgs std_srvs sensor_msgs trajectory_msgs cob_srvs control_msgs diagnostic_msgs)
 
-
 #######################################
 ## Declare ROS messages and services ##
 #######################################
