@@ -252,11 +252,11 @@ class SdhNode
 				joint_names_[i] = (std::string)joint_names_param[i];
 			}
 			std::cout << "joint_names = " << joint_names_param << std::endl;
-			
+
 			// define axes to send to sdh
 			axes_.resize(DOF_);
 			velocities_.resize(DOF_);
-			for (int i = 0; i < DOF_; i++)
+			for (int i=0; i<DOF_; i++)
 			{
 				axes_[i] = i;
 			}
@@ -276,8 +276,7 @@ class SdhNode
 			hasNewGoal_ = false;
 			sdh_->Stop();
 
-			try
-			{
+			try{
 				if (mode == "position")
 				{
 					sdh_->SetController(SDH::cSDH::eCT_POSE);
@@ -293,7 +292,8 @@ class SdhNode
 					return false;
 				}
 				sdh_->SetAxisEnable(sdh_->All, 1.0); // TODO: check if necessary
-			} catch (SDH::cSDHLibraryException* e)
+			}
+			catch (SDH::cSDHLibraryException* e)
 			{
 				ROS_ERROR("An exception was caught: %s", e->what());
 				delete e;
