@@ -89,10 +89,10 @@
 #include <schunk_sdh/dsa.h>
 
 /*!
- * \brief Implementation of ROS node for sdh.
- *
- * Offers actionlib and direct command interface.
- */
+* \brief Implementation of ROS node for sdh.
+*
+* Offers actionlib and direct command interface.
+*/
 class SdhNode
 {
 	public:
@@ -157,31 +157,30 @@ class SdhNode
 
 	public:
 		/*!
-		 * \brief Constructor for SdhNode class
-		 *
-		 * \param name Name for the actionlib server
-		 */
+		* \brief Constructor for SdhNode class
+		*
+		* \param name Name for the actionlib server
+		*/
 		SdhNode(std::string name) :
-				as_(nh_, name, boost::bind(&SdhNode::executeCB, this, _1),
-						true), action_name_(name)
+				as_(nh_, name, boost::bind(&SdhNode::executeCB, this, _1), true), 
+				action_name_(name)
 		{
 			pi_ = 3.1415926;
 
-			nh_ = ros::NodeHandle("~");
+			nh_ = ros::NodeHandle ("~");
 			isError_ = false;
 			// diagnostics
-			topicPub_Diagnostics_ = nh_.advertise<
-					diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
+			topicPub_Diagnostics_ = nh_.advertise<diagnostic_msgs::DiagnosticArray>("/diagnostics", 1);
 		}
 
 		/*!
-		 * \brief Destructor for SdhNode class
-		 */
-		~SdhNode()
+		* \brief Destructor for SdhNode class
+		*/
+		~SdhNode() 
 		{
-			if (isDSAInitialized_)
+			if(isDSAInitialized_)
 				dsa_->Close();
-			if (isInitialized_)
+			if(isInitialized_)
 				sdh_->Close();
 			delete sdh_;
 		}
