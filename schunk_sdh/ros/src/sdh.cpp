@@ -306,79 +306,50 @@ class SdhNode
 		}
 
 		/*!
-		 * \brief Executes the callback from the actionlib
-		 *
-		 * Set the current goal to aborted after receiving a new goal and write new goal to a member variable. Wait for the goal to finish and set actionlib status to succeeded.
-		 * \param goal JointTrajectoryGoal
-		 */
-		void executeCB(
-				const control_msgs::FollowJointTrajectoryGoalConstPtr &goal)
-		{
+		* \brief Executes the callback from the actionlib
+		*
+		* Set the current goal to aborted after receiving a new goal and write new goal to a member variable. Wait for the goal to finish and set actionlib status to succeeded.
+		* \param goal JointTrajectoryGoal
+		*/
+		void executeCB(const control_msgs::FollowJointTrajectoryGoalConstPtr &goal)
+		{			
 			ROS_INFO("sdh: executeCB");
 			if (operationMode_ != "position")
 			{
-				ROS_ERROR("%s: Rejected, sdh not in position mode",
-						action_name_.c_str());
+				ROS_ERROR("%s: Rejected, sdh not in position mode", action_name_.c_str());
 				as_.setAborted();
 				return;
 			}
 			if (!isInitialized_)
 			{
-				ROS_ERROR("%s: Rejected, sdh not initialized",
-						action_name_.c_str());
+				ROS_ERROR("%s: Rejected, sdh not initialized", action_name_.c_str());
 				as_.setAborted();
 				return;
 			}
 
-			if (goal->trajectory.points.empty()
-					|| goal->trajectory.points[0].positions.size()
-							!= size_t(DOF_))
+			if (goal->trajectory.points.empty() || goal->trajectory.points[0].positions.size() != size_t(DOF_))
 			{
-				ROS_ERROR("%s: Rejected, malformed FollowJointTrajectoryGoal",
-						action_name_.c_str());
+				ROS_ERROR("%s: Rejected, malformed FollowJointTrajectoryGoal", action_name_.c_str());
 				as_.setAborted();
 				return;
 			}
-			while (hasNewGoal_ == true)
-				usleep(10000);
+			while (hasNewGoal_ == true) usleep(10000);
 
-			std::map<std::string, int> dict;
-			for (int idx = 0; idx < goal->trajectory.joint_names.size(); idx++)
+			std::map<std::string,int> dict;
+			for (int idx=0; idx<goal->trajectory.joint_names.size(); idx++)
 			{
 				dict[goal->trajectory.joint_names[idx]] = idx;
 			}
 
 			targetAngles_.resize(DOF_);
-			targetAngles_[0] =
-					goal->trajectory.points[0].positions[dict["sdh_knuckle_joint"]]
-							* 180.0 / pi_; // sdh_knuckle_joint
-			targetAngles_[1] =
-					goal->trajectory.points[0].positions[dict["sdh_finger_22_joint"]]
-							* 180.0 / pi_; // sdh_finger22_joint
-			targetAngles_[2] =
-					goal->trajectory.points[0].positions[dict["sdh_finger_23_joint"]]
-							* 180.0 / pi_; // sdh_finger23_joint
-			targetAngles_[3] =
-					goal->trajectory.points[0].positions[dict["sdh_thumb_2_joint"]]
-							* 180.0 / pi_; // sdh_thumb2_joint
-			targetAngles_[4] =
-					goal->trajectory.points[0].positions[dict["sdh_thumb_3_joint"]]
-							* 180.0 / pi_; // sdh_thumb3_joint
-			targetAngles_[5] =
-					goal->trajectory.points[0].positions[dict["sdh_finger_12_joint"]]
-							* 180.0 / pi_; // sdh_finger12_joint
-			targetAngles_[6] =
-					goal->trajectory.points[0].positions[dict["sdh_finger_13_joint"]]
-							* 180.0 / pi_; // sdh_finger13_joint
-			ROS_INFO(
-					"received position goal: [['sdh_knuckle_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint']] = [%f,%f,%f,%f,%f,%f,%f]",
-					goal->trajectory.points[0].positions[dict["sdh_knuckle_joint"]],
-					goal->trajectory.points[0].positions[dict["sdh_thumb_2_joint"]],
-					goal->trajectory.points[0].positions[dict["sdh_thumb_3_joint"]],
-					goal->trajectory.points[0].positions[dict["sdh_finger_12_joint"]],
-					goal->trajectory.points[0].positions[dict["sdh_finger_13_joint"]],
-					goal->trajectory.points[0].positions[dict["sdh_finger_22_joint"]],
-					goal->trajectory.points[0].positions[dict["sdh_finger_23_joint"]]);
+			targetAngles_[0] = goal->trajectory.points[0].positions[dict["sdh_knuckle_joint"]]*180.0/pi_; // sdh_knuckle_joint
+			targetAngles_[1] = goal->trajectory.points[0].positions[dict["sdh_finger_22_joint"]]*180.0/pi_; // sdh_finger22_joint
+			targetAngles_[2] = goal->trajectory.points[0].positions[dict["sdh_finger_23_joint"]]*180.0/pi_; // sdh_finger23_joint
+			targetAngles_[3] = goal->trajectory.points[0].positions[dict["sdh_thumb_2_joint"]]*180.0/pi_; // sdh_thumb2_joint
+			targetAngles_[4] = goal->trajectory.points[0].positions[dict["sdh_thumb_3_joint"]]*180.0/pi_; // sdh_thumb3_joint
+			targetAngles_[5] = goal->trajectory.points[0].positions[dict["sdh_finger_12_joint"]]*180.0/pi_; // sdh_finger12_joint
+			targetAngles_[6] = goal->trajectory.points[0].positions[dict["sdh_finger_13_joint"]]*180.0/pi_; // sdh_finger13_joint
+			ROS_INFO("received position goal: [['sdh_knuckle_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint']] = [%f,%f,%f,%f,%f,%f,%f]",goal->trajectory.points[0].positions[dict["sdh_knuckle_joint"]],goal->trajectory.points[0].positions[dict["sdh_thumb_2_joint"]],goal->trajectory.points[0].positions[dict["sdh_thumb_3_joint"]],goal->trajectory.points[0].positions[dict["sdh_finger_12_joint"]],goal->trajectory.points[0].positions[dict["sdh_finger_13_joint"]],goal->trajectory.points[0].positions[dict["sdh_finger_22_joint"]],goal->trajectory.points[0].positions[dict["sdh_finger_23_joint"]]);
 
 			tactileOpening_ = false;
 			hasNewGoal_ = true;
