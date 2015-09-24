@@ -146,7 +146,7 @@ class SdhNode
 		double pi_;
 
 		trajectory_msgs::JointTrajectory traj_;
-		
+
 		std::vector<std::string> joint_names_;
 		std::vector<int> axes_;
 		std::vector<double> targetAngles_; // in degrees
@@ -162,7 +162,7 @@ class SdhNode
 		* \param name Name for the actionlib server
 		*/
 		SdhNode(std::string name):
-			as_(nh_, name, boost::bind(&SdhNode::executeCB, this, _1), true), 
+			as_(nh_, name, boost::bind(&SdhNode::executeCB, this, _1), true),
 			action_name_(name)
 		{
 			pi_ = 3.1415926;
@@ -223,10 +223,10 @@ class SdhNode
 			nh_.param("sdhdevicetype", sdhdevicetype_, std::string("PCAN"));
 			nh_.param("sdhdevicestring", sdhdevicestring_, std::string("/dev/pcan0"));
 			nh_.param("sdhdevicenum", sdhdevicenum_, 0);
-
+			
 			nh_.param("dsadevicestring", dsadevicestring_, std::string(""));
 			nh_.param("dsadevicenum", dsadevicenum_, 0);
-
+			
 			nh_.param("baudrate", baudrate_, 1000000);
 			nh_.param("timeout", timeout_, (double)0.04);
 			nh_.param("id_read", id_read_, 43);
