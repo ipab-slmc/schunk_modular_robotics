@@ -249,10 +249,10 @@ class SdhNode
 			joint_names_.resize(DOF_);
 			for (int i=0; i<DOF_; i++)
 			{
-				joint_names_[i] = (std::string) joint_names_param[i];
+				joint_names_[i] = (std::string)joint_names_param[i];
 			}
 			std::cout << "joint_names = " << joint_names_param << std::endl;
-
+			
 			// define axes to send to sdh
 			axes_.resize(DOF_);
 			velocities_.resize(DOF_);
