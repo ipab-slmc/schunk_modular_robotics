@@ -1057,10 +1057,10 @@ class SdhNode
 //SdhNode
 
 /*!
- * \brief Main loop of ROS node.
- *
- * Running with a specific frequency defined by loop_rate.
- */
+* \brief Main loop of ROS node.
+*
+* Running with a specific frequency defined by loop_rate.
+*/
 int main(int argc, char** argv)
 {
 	// initialize ROS, spezify name of node
@@ -1068,8 +1068,7 @@ int main(int argc, char** argv)
 
 	//SdhNode sdh_node(ros::this_node::getName() + "/joint_trajectory_action");
 	SdhNode sdh_node(ros::this_node::getName() + "/follow_joint_trajectory");
-	if (!sdh_node.init())
-		return 0;
+	if (!sdh_node.init()) return 0;
 
 	ROS_INFO("...sdh node running...");
 
@@ -1081,9 +1080,7 @@ int main(int argc, char** argv)
 	else
 	{
 		frequency = 5; //Hz
-		ROS_WARN(
-				"Parameter frequency not available, setting to default value: %f Hz",
-				frequency);
+		ROS_WARN("Parameter frequency not available, setting to default value: %f Hz", frequency);
 	}
 
 	//sleep(1);
@@ -1092,10 +1089,10 @@ int main(int argc, char** argv)
 	{
 		// publish JointState
 		sdh_node.updateSdh();
-		
+
 		// publish TactileData
 		sdh_node.updateDsa();
-		
+
 		// sleep and waiting for messages, callbacks
 		ros::spinOnce();
 		loop_rate.sleep();
