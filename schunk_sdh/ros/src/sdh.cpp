@@ -61,6 +61,7 @@
 //#### includes ####
 // standard includes
 #include <unistd.h>
+#include <cmath>
 
 // ROS includes
 #include <ros/ros.h>
@@ -69,6 +70,7 @@
 
 // ROS message includes
 #include <std_msgs/Float64MultiArray.h>
+#include <std_msgs/Bool.h>
 #include <trajectory_msgs/JointTrajectory.h>
 #include <sensor_msgs/JointState.h>
 #include <control_msgs/FollowJointTrajectoryAction.h>
@@ -103,6 +105,7 @@ private:
   ros::Publisher topicPub_ControllerState_;
   ros::Publisher topicPub_TactileSensor_;
   ros::Publisher topicPub_Diagnostics_;
+  ros::Publisher topicPub_GraspingState_;
 
   // topic subscribers
   ros::Subscriber subSetVelocitiesRaw_;
@@ -198,6 +201,7 @@ public:
     topicPub_ControllerState_ = nh_.advertise<control_msgs::JointTrajectoryControllerState>(
         "joint_trajectory_controller/state", 1);
     topicPub_TactileSensor_ = nh_.advertise<schunk_sdh::TactileSensor>("tactile_data", 1);
+    topicPub_GraspingState_ = nh_.advertise<std_msgs::Bool>("grasping_state", 1);
 
     // pointer to sdh
     sdh_ = new SDH::cSDH(false, false, 0); //(_use_radians=false, bool _use_fahrenheit=false, int _debug_level=0)
@@ -729,6 +733,55 @@ public:
   }
 
   /*!
+   * \brief Checks whether the current configuration is a particular configuration
+   *
+   * Checks whether the current configuration is a particular configuration (open or close state)
+   *
+   *
+   */
+  bool isOpenConfiguration(std::vector<double> desired, std::vector<double> actual)
+  {
+    // When we are in tactile opening mode, check whether the configurations are the same
+    // - if they are publish message
+    if (!tactileOpening_)
+    {
+      return false;
+    }
+
+    // TODO(wxm): remove cmath, make sure lengths are same
+    bool _same = true;
+    for (int i = 0; i < 7; i++)
+    {
+      if (std::abs(actual[i] - desired[i]) > 0.01)
+      {
+        // std::cout << "at" << i << " not similar: " << actual[i] << "differs from" << desired[i] << std::endl;
+        _same = false;
+      }
+    }
+
+    if (!_same)
+      return false;
+
+    // Publish message that the hand is open
+    std_msgs::Bool grasping_succeeded_message;
+    grasping_succeeded_message.data = false;
+    topicPub_GraspingState_.publish(grasping_succeeded_message);
+    tactileOpening_ = false;
+
+    return true;
+
+    // TODO(wxm): cleanup
+    // Open Configuration
+    // targetAngles_[0] = 0 * 180.0 / pi_; // sdh_knuckle_joint
+    // targetAngles_[1] = -1.5707 * 180.0 / pi_; // sdh_finger22_joint
+    // targetAngles_[2] = .785 * 180.0 / pi_; // sdh_finger23_joint
+    // targetAngles_[3] = -1.5707 * 180.0 / pi_; // sdh_thumb2_joint
+    // targetAngles_[4] = .785 * 180.0 / pi_; // sdh_thumb3_joint
+    // targetAngles_[5] = -1.5707 * 180.0 / pi_; // sdh_finger12_joint
+    // targetAngles_[6] = .785 * 180.0 / pi_; // sdh_finger13_joint
+  }
+
+  /*!
    * \brief Executes the service callback to open the hand with tactile sensing (simple tactile grasp).
    *
    * Opens hand with tactile sensing.
@@ -936,6 +989,9 @@ public:
 
       // read sdh status
       state_ = sdh_->GetAxisActualState(axes_);
+
+      // check for special configurations (e.g. open or closed)
+      isOpenConfiguration( (controllermsg.desired.positions),  (controllermsg.actual.positions));
     }
     else
     {
@@ -1023,7 +1079,12 @@ public:
             if (dsa_->GetTexel(m, x, y) > 200 && !tactileOpening_)
             {
               sdh_->Stop();
-              //std::cout << "Activated: " << m << ", " << x << ", " << y << ": " << dsa_->GetTexel( m, x, y ) << std::endl;
+              std_msgs::Bool grasping_succeeded_message;
+              grasping_succeeded_message.data = true;  // true = closed
+              topicPub_GraspingState_.publish(grasping_succeeded_message);
+              std::cout << "Activated: " << m << ", " << x << ", " << y << ": " << dsa_->GetTexel( m, x, y ) << std::endl;
+              ROS_INFO("Successfully grasped object");
+              // TODO(wxm): store information whether gripper is open or closed
             }
           }
         }
