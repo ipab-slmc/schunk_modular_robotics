@@ -792,14 +792,19 @@ public:
   {
     try
     {
+      /*
+      name: ['sdh_knuckle_joint', 'sdh_thumb_2_joint', 'sdh_thumb_3_joint', 'sdh_finger_12_joint', 'sdh_finger_13_joint', 'sdh_finger_22_joint', 'sdh_finger_23_joint']
+      position: [0.00017151426818925888, -0.561109722875701, 0.5056484953039996, -0.5268712589583333, 0.5476795681750933, -0.5527853139508714, 0.47986147309329136]
+
+      */
       targetAngles_.resize(DOF_);
       targetAngles_[0] = 0 * 180.0 / pi_; // sdh_knuckle_joint
-      targetAngles_[1] = -1.5707 * 180.0 / pi_; // sdh_finger22_joint
-      targetAngles_[2] = .785 * 180.0 / pi_; // sdh_finger23_joint
-      targetAngles_[3] = -1.5707 * 180.0 / pi_; // sdh_thumb2_joint
-      targetAngles_[4] = .785 * 180.0 / pi_; // sdh_thumb3_joint
-      targetAngles_[5] = -1.5707 * 180.0 / pi_; // sdh_finger12_joint
-      targetAngles_[6] = .785 * 180.0 / pi_; // sdh_finger13_joint
+      targetAngles_[1] = -30.; //-pi_/2.0 * 180.0 / pi_; // sdh_finger22_joint
+      targetAngles_[2] = 30.; //pi_/2.0 * 180.0 / pi_; // sdh_finger23_joint
+      targetAngles_[3] = -30.; //-pi_/2.0 * 180.0 / pi_; // sdh_thumb2_joint
+      targetAngles_[4] = 30.; //pi_/2.0 * 180.0 / pi_; // sdh_thumb3_joint
+      targetAngles_[5] = -30; //-pi_/2.0 * 180.0 / pi_; // sdh_finger12_joint
+      targetAngles_[6] = 30; //pi_/2.0 * 180.0 / pi_; // sdh_finger13_joint
       tactileOpening_ = true;
       hasNewGoal_ = true;
       usleep(500000);
